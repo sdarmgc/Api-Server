@@ -17,8 +17,8 @@ router = APIRouter(tags=["Translation"])
 @limiter.limit(settings.RATE_LIMIT_TRANSLATE)
 async def translate(request: Request, payload: TranslateRequest):
     """
-    Translates every string in `source_text` from `source_lang` to
-    `target_lang`. `option` is passed through unchanged and can be used by
+    Translates every string in `source-text` from `source-lang` to
+    `target-lang`. `option` is passed through unchanged and can be used by
     a specific backend implementation (e.g. formality level, glossary id).
     """
     return await translation_service.translate(payload)

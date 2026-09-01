@@ -15,7 +15,7 @@ from app.logging_config import configure_logging, get_logger
 from app.middleware.access_log import AccessLogMiddleware
 from app.middleware.timeout import RequestTimeoutMiddleware
 from app.rate_limit import limiter
-from app.routers import semantic_match, translate
+from app.routers import pass_through, semantic_match, translate
 
 configure_logging()
 logger = get_logger("main")
@@ -101,6 +101,7 @@ app.add_middleware(SlowAPIMiddleware)
 # --- Routers ---
 app.include_router(semantic_match.router)
 app.include_router(translate.router)
+app.include_router(pass_through.router)
 
 
 @app.get("/health", tags=["Health"], summary="Liveness/readiness probe")

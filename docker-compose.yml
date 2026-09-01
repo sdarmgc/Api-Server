@@ -28,12 +28,18 @@ services:
       #   - translate-mock: comment out along with the
       #     TRANSLATION_BACKEND_HOST/PORT lines below once the real
       #     translation backend (being provided separately) is deployed.
-      # Once removed, .env's own SEMANTIC_MATCHING_BACKEND_HOST/PORT and
-      # TRANSLATION_BACKEND_HOST/PORT apply again.
+      #   - pass-through-mock: comment out along with the
+      #     PASS_THROUGH_BACKEND_HOST/PORT lines below once a real
+      #     pass-through backend is deployed.
+      # Once removed, .env's own SEMANTIC_MATCHING_BACKEND_HOST/PORT,
+      # TRANSLATION_BACKEND_HOST/PORT, and PASS_THROUGH_BACKEND_HOST/PORT
+      # apply again.
       - SEMANTIC_MATCHING_BACKEND_HOST=semantic-match-mock
       - SEMANTIC_MATCHING_BACKEND_PORT=9999
       - TRANSLATION_BACKEND_HOST=translate-mock
       - TRANSLATION_BACKEND_PORT=9998
+      - PASS_THROUGH_BACKEND_HOST=pass-through-mock
+      - PASS_THROUGH_BACKEND_PORT=9997
     networks:
       - internal
     healthcheck:
@@ -63,7 +69,7 @@ services:
       - "9999"
 
   # --- Temporary test backend for /api/translate ------------------------
-  # Runs the offline "[<target_lang>] <text>" placeholder
+  # Runs the offline "[<target-lang>] <text>" placeholder
   # (scripts/mock_translate_backend.py). The real translation backend is
   # being provided separately -- this exists purely so semantic-api has
   # something to talk to on TRANSLATION_BACKEND_HOST/PORT until then.
@@ -80,6 +86,24 @@ services:
       - internal
     expose:
       - "9998"
+
+  # --- Temporary test backend for /api/pass-through ---------------------
+  # Runs the trivial echo reference implementation
+  # (scripts/mock_pass_through_backend.py) so semantic-api has something to
+  # talk to on PASS_THROUGH_BACKEND_HOST/PORT.
+  #
+  # >>> Comment out this whole service (and the PASS_THROUGH_BACKEND_* lines
+  # >>> in `semantic-api.environment` above) once a real pass-through
+  # >>> backend is deployed.
+  pass-through-mock:
+    build: .
+    image: semantic-api:latest
+    command: ["python", "-m", "scripts.mock_pass_through_backend"]
+    restart: unless-stopped
+    networks:
+      - internal
+    expose:
+      - "9997"
 
 networks:
   internal:

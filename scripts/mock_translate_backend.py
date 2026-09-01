@@ -15,12 +15,12 @@ local dev and the test suite have something to talk to in the meantime.
 Wire protocol: newline-delimited JSON, one request per connection -- see
 app/services/socket_client.py. Request/response use exactly the same JSON
 structure as POST /api/translate's own HTTP contract:
-    in  -> {"source_text": [...], "source_lang": ..., "target_lang": ...,
+    in  -> {"source-text": [...], "source-lang": ..., "target-lang": ...,
             "option": ...}
-    out -> {"source_text": [...], "target_text": [...], "source_lang": ...,
-            "target_lang": ..., "option": ...}
+    out -> {"source-text": [...], "target-text": [...], "source-lang": ...,
+            "target-lang": ..., "option": ...}
 
-Translation logic here is the same "[<target_lang>] <text>" placeholder as
+Translation logic here is the same "[<target-lang>] <text>" placeholder as
 the in-process "mock" backend (app/services/translation_service.py).
 """
 import asyncio
@@ -35,15 +35,15 @@ PORT = 9998
 
 
 def handle(payload: dict) -> dict:
-    source_text = payload["source_text"]
-    source_lang = payload["source_lang"]
-    target_lang = payload["target_lang"]
+    source_text = payload["source-text"]
+    source_lang = payload["source-lang"]
+    target_lang = payload["target-lang"]
     option = payload.get("option", 0)
     return {
-        "source_text": source_text,
-        "target_text": [f"[{target_lang}] {t}" for t in source_text],
-        "source_lang": source_lang,
-        "target_lang": target_lang,
+        "source-text": source_text,
+        "target-text": [f"[{target_lang}] {t}" for t in source_text],
+        "source-lang": source_lang,
+        "target-lang": target_lang,
         "option": option,
     }
 

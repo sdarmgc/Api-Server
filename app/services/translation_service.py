@@ -10,13 +10,13 @@ Backend is pluggable via TRANSLATION_BACKEND:
                           (see app/services/socket_client.py for the wire
                           protocol). Request/response use exactly the same
                           JSON structure as this endpoint's own HTTP
-                          contract -- {"source_text": [...], "source_lang":
-                          ..., "target_lang": ..., "option": ...} in, the
-                          same shape (plus "target_text") out. Point
+                          contract -- {"source-text": [...], "source-lang":
+                          ..., "target-lang": ..., "option": ...} in, the
+                          same shape (plus "target-text") out. Point
                           TRANSLATION_BACKEND_HOST/_PORT at the real
                           backend once it's ready.
   - "mock"              : deterministic, fully offline placeholder. Wraps
-                           each string as "[<target_lang>] <source text>"
+                           each string as "[<target-lang>] <source text>"
                            so callers can see the plumbing works
                            end-to-end. Used by the test suite
                            (tests/conftest.py starts
@@ -55,9 +55,9 @@ async def _translate_socket(
     texts: list[str], source_lang: str, target_lang: str, option: int
 ) -> list[str]:
     request_payload = {
-        "source_text": texts,
-        "source_lang": source_lang,
-        "target_lang": target_lang,
+        "source-text": texts,
+        "source-lang": source_lang,
+        "target-lang": target_lang,
         "option": option,
     }
     response_payload = await call_json_socket_backend(
@@ -66,10 +66,10 @@ async def _translate_socket(
         request_payload,
     )
     # Expected shape: this endpoint's own HTTP response structure, i.e.
-    # {"source_text": [...], "target_text": [...], "source_lang": ...,
-    #  "target_lang": ..., "option": ...}. We only need "target_text" here;
+    # {"source-text": [...], "target-text": [...], "source-lang": ...,
+    #  "target-lang": ..., "option": ...}. We only need "target-text" here;
     # the rest is reconstructed from the original request in translate().
-    return response_payload["target_text"]
+    return response_payload["target-text"]
 
 
 _BACKENDS: dict[str, Callable[[list[str], str, str, int], "list[str]"]] = {
@@ -106,10 +106,10 @@ async def translate(request: TranslateRequest) -> TranslateResponse:
     logger.info("translate completed: %d string(s)", len(target_text))
     return TranslateResponse(
         **{
-            "source_text": request.source_text,
-            "target_text": target_text,
-            "source_lang": request.source_lang,
-            "target_lang": request.target_lang,
+            "source-text": request.source_text,
+            "target-text": target_text,
+            "source-lang": request.source_lang,
+            "target-lang": request.target_lang,
             "option": request.option,
         }
     )

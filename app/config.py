@@ -43,6 +43,7 @@ class Settings(BaseSettings):
     RATE_LIMIT_DEFAULT: str = "60/minute"
     RATE_LIMIT_SEMANTIC_MATCHING: str = "30/minute"
     RATE_LIMIT_TRANSLATE: str = "30/minute"
+    RATE_LIMIT_PASS_THROUGH: str = "30/minute"
 
     # --- Logging (optional, per spec: "Logging: option") ---
     LOGGING_ENABLED: bool = True
@@ -70,6 +71,15 @@ class Settings(BaseSettings):
     TRANSLATION_BACKEND: str = "socket"
     TRANSLATION_BACKEND_HOST: str = "localhost"
     TRANSLATION_BACKEND_PORT: int = 9998
+
+    # --- Pass-through backend ---
+    # Generic endpoint: whatever JSON the caller sends is forwarded as-is
+    # to this backend, and whatever the backend returns is sent back as-is.
+    # No request/response schema is enforced on either side. "socket" is
+    # currently the only registered backend.
+    PASS_THROUGH_BACKEND: str = "socket"
+    PASS_THROUGH_BACKEND_HOST: str = "localhost"
+    PASS_THROUGH_BACKEND_PORT: int = 9997
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 

@@ -17,12 +17,13 @@ COPY scripts ./scripts
 # Runs on an unprivileged port (8080) so the container doesn't need to run
 # as root just to bind it.
 #
-# 9998/9999 are exposed too since this same image also runs the mock
-# socket backend scripts (scripts/mock_semantic_matching_backend.py,
+# 9997/9998/9999 are exposed too since this same image also runs the mock
+# socket backend scripts (scripts/mock_pass_through_backend.py,
+# scripts/mock_semantic_match_backend.py,
 # scripts/mock_translate_backend.py) as separate services in
 # docker-compose.yml -- see that file's comments for which of those are
 # temporary stand-ins to be removed once real backends are deployed.
-EXPOSE 8080 9998 9999
+EXPOSE 8080 9997 9998 9999
 
 HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
     CMD curl -f http://localhost:8080/health || exit 1
