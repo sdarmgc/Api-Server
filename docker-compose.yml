@@ -1,0 +1,86 @@
+version: "3.9"
+
+services:
+  semantic-api:
+    build: .
+    image: semantic-api:latest
+    restart: unless-stopped
+    env_file:
+      - .env
+    # Published intentionally: the host itself sits behind a network that's
+    # firewalled at the network layer (UFW/security-group rules allowing
+    # inbound :8080 only from specific IPs, e.g. the web server). Docker's
+    # own network isolation is not relied on for access control here -- the
+    # host firewall is the boundary. If UFW isn't configured yet on this
+    # host, set it up before deploying, e.g.:
+    #   ufw allow from <web-server-ip> to any port 8080 proto tcp
+    #   ufw default deny incoming
+    ports:
+      - "8080:8080"
+    environment:
+      # --- Temporary: point at the mock backends below -------------------
+      # Both mock-* services (and these override lines) are stand-ins for
+      # real backend services and are meant to be commented out by hand
+      # once each real backend is deployed:
+      #   - semantic-match-mock: comment out along with the
+      #     SEMANTIC_MATCHING_BACKEND_HOST/PORT lines below once a real
+      #     semantic-match backend is deployed.
+      #   - translate-mock: comment out along with the
+      #     TRANSLATION_BACKEND_HOST/PORT lines below once the real
+      #     translation backend (being provided separately) is deployed.
+      # Once removed, .env's own SEMANTIC_MATCHING_BACKEND_HOST/PORT and
+      # TRANSLATION_BACKEND_HOST/PORT apply again.
+      - SEMANTIC_MATCHING_BACKEND_HOST=semantic-match-mock
+      - SEMANTIC_MATCHING_BACKEND_PORT=9999
+      - TRANSLATION_BACKEND_HOST=translate-mock
+      - TRANSLATION_BACKEND_PORT=9998
+    networks:
+      - internal
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+
+  # --- Temporary test backend for /api/semantic-match -------------------
+  # Runs the TF-IDF/cosine-similarity reference implementation
+  # (scripts/mock_semantic_match_backend.py) so semantic-api has a real
+  # socket service to talk to before the production backend is deployed.
+  # Only reachable from other containers on the `internal` network below
+  # (no `ports:` published).
+  #
+  # >>> Comment out this whole service (and the SEMANTIC_MATCHING_* lines
+  # >>> in `semantic-api.environment` above) once the real backend is
+  # >>> deployed.
+  semantic-match-mock:
+    build: .
+    image: semantic-api:latest
+    command: ["python", "-m", "scripts.mock_semantic_match_backend"]
+    restart: unless-stopped
+    networks:
+      - internal
+    expose:
+      - "9999"
+
+  # --- Temporary test backend for /api/translate ------------------------
+  # Runs the offline "[<target_lang>] <text>" placeholder
+  # (scripts/mock_translate_backend.py). The real translation backend is
+  # being provided separately -- this exists purely so semantic-api has
+  # something to talk to on TRANSLATION_BACKEND_HOST/PORT until then.
+  #
+  # >>> Comment out this whole service (and the TRANSLATION_BACKEND_* lines
+  # >>> in `semantic-api.environment` above) once the real translation
+  # >>> backend is deployed.
+  translate-mock:
+    build: .
+    image: semantic-api:latest
+    command: ["python", "-m", "scripts.mock_translate_backend"]
+    restart: unless-stopped
+    networks:
+      - internal
+    expose:
+      - "9998"
+
+networks:
+  internal:
+    driver: bridge
